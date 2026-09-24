@@ -31,7 +31,7 @@ export class IniciarSesionComponent {
 
     const credentials = {
       email: this.form.value.email,
-      contrasena: this.form.value.password,
+      password: this.form.value.password,
     };
 
     this.authService.login(credentials).subscribe({
