@@ -35,7 +35,7 @@ SECRET_KEY = os.getenv(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG') == 'True'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1','10.0.2.2' ,'*']
 
 
 # Application definition
@@ -138,10 +138,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:4200",
-    "http://127.0.0.1:4200",
-]
+CORS_ALLOW_ALL_ORIGINS = True
 
 
 
