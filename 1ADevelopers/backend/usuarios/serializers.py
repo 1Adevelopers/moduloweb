@@ -1,11 +1,38 @@
 from rest_framework import serializers
 from .models import Rol, Usuario
-
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class RolSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rol
         fields = ['id', 'nombre_rol']
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    username_field = 'email'
+    
+    def validate(self, attrs):
+        email = attrs.get('email')
+        password = attrs.get('password')
+        
+        try:
+            user = Usuario.objects.get(email=email, contrasena=password)
+        except Usuario.DoesNotExist:
+            raise serializers.ValidationError('Credenciales inválidas')    
+  
+        
+        refresh = self.get_token(user)
+        
+        return {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            'user': {
+                'id': user.id,
+                'nombre': user.nombre,
+                'apellido': user.apellido,
+                'email': user.email,
+                'rol': user.rol.id
+            }
+            }
 
 
 class UsuarioSerializer(serializers.ModelSerializer):

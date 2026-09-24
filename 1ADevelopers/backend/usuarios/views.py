@@ -3,7 +3,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from .models import Rol, Usuario
-from .serializers import RolSerializer, UsuarioSerializer
+from .serializers import RolSerializer, UsuarioSerializer, CustomTokenObtainPairSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 class RolListarCrear(APIView):
     def get(self, request):
@@ -91,3 +92,9 @@ class LoginView(APIView):
                 {'error': 'Email o contraseña incorrectos'},
                 status=status.HTTP_401_UNAUTHORIZED
             )
+            
+class CustomTokenObtainPairView(TokenObtainPairView):
+      serializer_class = CustomTokenObtainPairSerializer        
+          
+            
+            

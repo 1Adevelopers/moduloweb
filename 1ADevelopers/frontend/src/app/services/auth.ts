@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 
 
 @Injectable({
@@ -8,19 +8,24 @@ import { Observable } from 'rxjs';
 })
 
 export class AuthService {
-  private apiUrl = 'http://127.0.0.1:8000/api/usuarios/';
+  private baseUrl = 'http://127.0.0.1:8000/api/';
   
   constructor(private http: HttpClient) {}
 
 
  // REGISTRO 
   register(userData: any): Observable<any> {
-  return this.http.post(`${this.apiUrl}usuarios/`, userData);
+  return this.http.post(`${this.baseUrl}usuarios/`, userData);
 }
 
 
  // LOGIN
-  login(credentials: { email: string; contrasena: string }): Observable<any> {
-  return this.http.post(`${this.apiUrl}login/`, credentials);
+  login(credentials: { email: string; password: string }): Observable<any> {
+  return this.http.post<{ access: string; refresh: string}>(`${this.baseUrl}token/`, credentials).pipe(
+    tap((tokens) => {
+      localStorage.setItem('access_token', tokens.access);
+      localStorage.setItem('refresh_token', tokens.refresh);
+    })
+  );
 }
 }
