@@ -30,7 +30,7 @@ export class IniciarSesionComponent {
     }
 
     const credentials = {
-      email: this.form.value.email,
+      username: this.form.value.email,
       password: this.form.value.password,
     };
 
