@@ -4,7 +4,7 @@ from .views import (
     RolDetalle,
     UsuarioListarCrear,
     UsuarioDetalle,
-    LoginView
+    CustomTokenObtainPairView,
 )
 
 urlpatterns = [
@@ -14,5 +14,5 @@ urlpatterns = [
     path('usuarios/', UsuarioListarCrear.as_view(), name='usuario-listar'),
     path('usuarios/<int:pk>/', UsuarioDetalle.as_view(), name='usuario-detalle'),
 
-    path('login/', LoginView.as_view(), name='login'),
+    path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
 ]

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Rol, Usuario
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 
 class RolSerializer(serializers.ModelSerializer):
     class Meta:
@@ -8,19 +9,25 @@ class RolSerializer(serializers.ModelSerializer):
         fields = ['id', 'nombre_rol']
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    username_field = 'email'
+    username = serializers.CharField(required=False, write_only=True)
+    email = serializers.EmailField(required=False, write_only=True)
+    password = serializers.CharField(write_only=True)
     
     def validate(self, attrs):
-        email = attrs.get('email')
+        
+        identificador = attrs.get('email') or attrs.get('username')
         password = attrs.get('password')
         
+        if not identificador or not password:
+            raise serializers.ValidationError('Se requiere email/username y contraseña')
+        
         try:
-            user = Usuario.objects.get(email=email, contrasena=password)
+            user = Usuario.objects.get(email=identificador, contrasena=password)
         except Usuario.DoesNotExist:
             raise serializers.ValidationError('Credenciales inválidas')    
   
-        
-        refresh = self.get_token(user)
+  
+        refresh = RefreshToken.for_user(user)        
         
         return {
             'refresh': str(refresh),
