@@ -6,10 +6,9 @@ import { Usuario } from '../interfaces/usuario';
 @Injectable({
   providedIn: 'root',
 })
-
 export class UsuarioService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8000/api/usuarios/usuarios/'; 
+  private apiUrl = 'http://localhost:8000/api/usuarios/';
 
   crearUsuario(usuario: Usuario): Observable<any> {
     return this.http.post(this.apiUrl, usuario);
