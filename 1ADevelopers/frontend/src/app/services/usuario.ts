@@ -6,7 +6,6 @@ import { Usuario } from '../interfaces/usuario';
 @Injectable({
   providedIn: 'root',
 })
-
 export class UsuarioService {
   private http = inject(HttpClient);
   private apiUrl = 'http://localhost:8000/api/usuarios/';
