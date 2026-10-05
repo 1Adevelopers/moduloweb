@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Rol, Usuario
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
 class RolSerializer(serializers.ModelSerializer):
     class Meta:
@@ -27,7 +27,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             raise serializers.ValidationError('Credenciales inválidas')    
   
   
-        refresh = RefreshToken.for_user(user)        
+        refresh = RefreshToken()
+        refresh['user_id'] = user.id        
         
         return {
             'refresh': str(refresh),
@@ -50,6 +51,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         model = Usuario
         fields = ['id', 'nombre', 'apellido', 'email', 'rol', 'rol_nombre', 'contrasena']
         # agrege contrasena en fields| Se proteje para que la contraseña no se envíe al frontend
+        read_only_fields = ['id', 'rol_nombre']
         extra_kwargs = {
             'contrasena': {'write_only': True, 'required':False},
             'rol': {'required': False}
@@ -61,16 +63,16 @@ class UsuarioSerializer(serializers.ModelSerializer):
         
         rol_data = validated_data.pop('rol', None)
         
-        # Si no viene rol (registro público), asignamos el ID 2 directamente
-        if not rol_data:
-            validated_data['rol_id'] = 2
-        # Si viene como diccionario (desde alguna otra vista)
-        elif isinstance(rol_data, dict):
-            validated_data['rol_id'] = rol_data.get('id', 2)
-        # Si ya es una instancia del modelo Rol (comportamiento por defecto de DRF)
+        es_admin = self._verificar_si_es_admin()
+
+        if es_admin and rol_data:
+            if isinstance(rol_data, dict):
+                validated_data['rol_id'] = rol_data.get('id', 2)
+            else:
+                validated_data['rol'] = rol_data
         else:
-            validated_data['rol'] = rol_data
-            
+            validated_data['rol_id'] = 2
+
         return Usuario.objects.create(**validated_data)
     
     def update(self, instance, validated_data):
@@ -81,9 +83,31 @@ class UsuarioSerializer(serializers.ModelSerializer):
         nueva_contrasena = validated_data.get('contrasena')
         if nueva_contrasena:
             instance.contrasena = nueva_contrasena
-        
+
         if 'rol' in validated_data:
-            instance.rol = validated_data.get('rol')
-            
+            es_admin = self._verificar_si_es_admin()
+            if es_admin:
+                instance.rol = validated_data.get('rol')
+            else:
+                validated_data.pop('rol', None)
+
         instance.save()
         return instance
+
+    def _verificar_si_es_admin(self):
+        request = self.context.get('request')
+        if not request:
+            return False
+
+        auth_header = request.headers.get('Authorization', '')
+        if auth_header.startswith('Bearer '):
+            raw_token = auth_header.split(' ')[1]
+            try:
+                access_token = AccessToken(raw_token)
+                user_id = access_token.get('user_id')
+                
+                usuario_logueado = Usuario.objects.get(id=user_id)
+                return usuario_logueado.rol.id == 1
+            except Exception:
+                return False
+        return False

@@ -7,6 +7,9 @@ from .serializers import RolSerializer, UsuarioSerializer, CustomTokenObtainPair
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 class RolListarCrear(APIView):
+    authentication_classes = []
+    permission_classes = []
+
     def get(self, request):
         roles = Rol.objects.all()
         serializer = RolSerializer(roles, many=True)
@@ -20,6 +23,9 @@ class RolListarCrear(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class RolDetalle(APIView):
+    authentication_classes = []
+    permission_classes = []
+
     def get(self, request, pk):
         roles = get_object_or_404(Rol, pk=pk)
         serializer = RolSerializer(roles)
@@ -40,13 +46,16 @@ class RolDetalle(APIView):
 
 
 class UsuarioListarCrear(APIView):
+    authentication_classes = []
+    permission_classes = []
+
     def get(self, request):
         usuarios = Usuario.objects.all()
         serializer = UsuarioSerializer(usuarios, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def post(self, request):
-        serializer = UsuarioSerializer(data=request.data)
+        serializer = UsuarioSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -54,6 +63,8 @@ class UsuarioListarCrear(APIView):
 
 
 class UsuarioDetalle(APIView):
+    authentication_classes = []
+    permission_classes = []
     def get(self, request, pk):
         usuario = get_object_or_404(Usuario, pk=pk)
         serializer = UsuarioSerializer(usuario)
@@ -61,7 +72,7 @@ class UsuarioDetalle(APIView):
 
     def put(self, request, pk):
         usuario = get_object_or_404(Usuario, pk=pk)
-        serializer = UsuarioSerializer(usuario, data=request.data)
+        serializer = UsuarioSerializer(usuario, data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -73,6 +84,9 @@ class UsuarioDetalle(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
     
 class LoginView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
     def post(self, request):
         email = request.data.get('email')
         contrasena = request.data.get('contrasena')
@@ -94,7 +108,9 @@ class LoginView(APIView):
             )
             
 class CustomTokenObtainPairView(TokenObtainPairView):
-      serializer_class = CustomTokenObtainPairSerializer        
+    authentication_classes = []
+    permission_classes = []
+    serializer_class = CustomTokenObtainPairSerializer        
           
             
             

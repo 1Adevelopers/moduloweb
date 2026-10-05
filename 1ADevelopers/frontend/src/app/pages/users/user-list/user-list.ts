@@ -1,11 +1,12 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { UsuarioService } from '../../../services/usuario';
 import { Usuario } from '../../../interfaces/usuario';
 
 @Component({
   selector: 'app-user-list',
-  imports: [RouterModule],
+  imports: [RouterModule, CommonModule],
   templateUrl: './user-list.html',
   styleUrl: './user-list.css',
 })
@@ -22,10 +23,13 @@ export class UserList implements OnInit {
   cargarUsuarios(): void {
     this.usuarioService.ObtenerUsuarios().subscribe({
       next: (data) => {
-        this.usuarios = data,
+        console.log('Usuarios cargados desde el backend:', data);
+        this.usuarios = data;
         this.cdr.detectChanges();
       },
-      error: (err) => console.error('Error al cargar usuarios:', err)
+      error: (err) => {
+        console.error('Error al cargar usuarios:', err)
+      }
     });
   }
   
@@ -36,7 +40,8 @@ export class UserList implements OnInit {
         next: () => {
           alert('Usuario eliminado con éxito');
           this.cargarUsuarios();
-        }
+        },
+        error: (err) => console.error('Error al eliminar usuario:', err)
       });
     }
   }
