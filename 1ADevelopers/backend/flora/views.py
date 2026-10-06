@@ -93,13 +93,15 @@ class ImagenEspecie(APIView):
         ImagenEspecie.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-class MisEspeciesListar(APIView):
-    def get(self, request):
-       usuario_id = request.query_params.get('usuario_id')
 
-       if usuario_id:
-           especies = Especie.objects.filter(usuario_id=usuario_id)
-       else:
-           return Response({"Error": "Falta el parámetro 'usuario_id'."}, status=status.HTTP_400_BAD_REQUEST)
-       serializer = EspecieSerializer(especies, many=True)
-       return Response(serializer.data)
+class MisEspeciesListar(APIView):
+    permission_classes = [IsAuthenticated] # cambio no subido aun, consultar con el equipo
+    def get(self, request):
+        usuario_id = request.query_params.get('usuario_id')
+
+        if usuario_id:
+            especies = Especie.objects.filter(usuario_id=usuario_id)
+        else:
+            return Response({"Error": "Falta el parámetro 'usuario_id'."}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = EspecieSerializer(especies, many=True)
+        return Response(serializer.data)

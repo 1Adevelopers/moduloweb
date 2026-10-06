@@ -139,7 +139,7 @@ Por el momento el sistema está configurado de esta manera, pero en próximos sp
 - [http://127.0.0.1:8000/api/usuarios/usuarios/<int:pk>/](http://127.0.0.1:8000/api/usuarios/usuarios/<int:pk>) - <small>Detalle y ABM de un usuario específico</small>
 - [http://127.0.0.1:8000/api/usuarios/roles/](http://127.0.0.1:8000/api/usuarios/roles/) - <small>Listar roles del sistema.</small>
 - [http://127.0.0.1:8000/api/usuarios/login/](http://127.0.0.1:8000/api/usuarios/login/) - <small>Endpoint seguro de autenticación por método POST.</small>
-
+ -o
 -Módulo Flora (api/flora/)
 
 - [http://127.0.0.1:8000/api/flora/especies/](http://127.0.0.1:8000/api/flora/especies/) - <small>Catálogo público de especies cargadas en el sistema<small>
