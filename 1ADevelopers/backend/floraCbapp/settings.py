@@ -19,6 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
+
 SECRET_KEY = os.getenv('SECRET_KEY', 'clave-insegura-por-defecto-cambiar-en-produccion')
 
 # DEBUG controlado por entorno (Por defecto en False por seguridad)
@@ -26,7 +27,6 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 # Hosts permitidos dinámicos según el entorno
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
-
 
 # Application definition
 
@@ -102,7 +102,6 @@ SIMPLE_JWT = {
     'SIGNING_KEY': SECRET_KEY,
 }
 
-
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
@@ -145,8 +144,12 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 
 REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'usuarios.serializers.CustomJWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
 }

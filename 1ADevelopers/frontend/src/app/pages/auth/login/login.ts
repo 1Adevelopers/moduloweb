@@ -15,7 +15,7 @@ export class IniciarSesionComponent {
   constructor(
     private formBuilder: FormBuilder,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
   ) {
     this.form = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
@@ -30,17 +30,17 @@ export class IniciarSesionComponent {
     }
 
     const credentials = {
-      username: this.form.value.email,
+      email: this.form.value.email,
       password: this.form.value.password,
     };
 
     this.authService.login(credentials).subscribe({
       next: (response) => {
         const user = response.user;
-        
+
         alert(`¡Bienvenido a FlorApp, ${user.nombre}!`);
         localStorage.setItem('user', JSON.stringify(user));
-      
+
         const idRol = Number(user.rol);
 
         if (user.rol === 1) {
@@ -49,14 +49,12 @@ export class IniciarSesionComponent {
           this.router.navigate(['/docentes']);
         } else {
           this.router.navigate(['/home']);
-
         }
-        },
-        error: (err) => {
+      },
+      error: (err) => {
         console.error(err);
         alert('Correo o contraseña incorrectos');
-      }
-
+      },
     });
   }
 }
