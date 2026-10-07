@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import AccessToken
 from django.shortcuts import get_object_or_404
 from .models import CategoriaEspecie, Especie, ImagenEspecie, Usuario
@@ -20,9 +21,11 @@ def obtener_usuario_desde_token(request):
     return None
 
 class Categorias(APIView):
-    authentication_classes = []
-    permission_classes = []
-
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+    
     def get(self, request):
         categorias = CategoriaEspecie.objects.all()
         serializer = CategoriaSerializer(categorias, many=True)
@@ -50,8 +53,10 @@ class Categorias(APIView):
     
 
 class EspecieListarCrear(APIView):
-    authentication_classes = []
-    permission_classes = []
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     def get(self, request):
         especies = Especie.objects.all()
@@ -66,8 +71,10 @@ class EspecieListarCrear(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class EspecieDetalle(APIView):
-    authentication_classes = []
-    permission_classes = []
+    def get_permissions(self):
+            if self.request.method == 'GET':
+                return [AllowAny()]
+            return [IsAuthenticated()]
 
     def get(self, request, pk):
         especie = get_object_or_404(Especie, pk=pk)
@@ -89,8 +96,10 @@ class EspecieDetalle(APIView):
 
 
 class ImagenEspecie(APIView):
-    authentication_classes = []
-    permission_classes = []
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     def get(self, request):
         imagenes = ImagenEspecie.objects.all()
