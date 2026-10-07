@@ -2,27 +2,28 @@ from rest_framework import serializers
 from .models import Rol, Usuario
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 class RolSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rol
         fields = ['id', 'nombre_rol']
 
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    username = serializers.CharField(required=False, write_only=True)
+class CustomTokenObtainPairSerializer(serializers.Serializer):
     email = serializers.EmailField(required=False, write_only=True)
     password = serializers.CharField(write_only=True)
+    contrasena = serializers.CharField(required=False, write_only=True)
     
     def validate(self, attrs):
         
-        identificador = attrs.get('email') or attrs.get('username')
-        password = attrs.get('password')
+        email = attrs.get('email')
+        pass_usuario = attrs.get('contrasena') or attrs.get('password')
         
-        if not identificador or not password:
-            raise serializers.ValidationError('Se requiere email/username y contraseña')
+        if not email or not pass_usuario:
+            raise serializers.ValidationError('Se requiere email y contraseña')
         
         try:
-            user = Usuario.objects.get(email=identificador, contrasena=password)
+            user = Usuario.objects.get(email=email, contrasena=pass_usuario)
         except Usuario.DoesNotExist:
             raise serializers.ValidationError('Credenciales inválidas')    
   
@@ -105,9 +106,21 @@ class UsuarioSerializer(serializers.ModelSerializer):
             try:
                 access_token = AccessToken(raw_token)
                 user_id = access_token.get('user_id')
+                if not user_id:
+                    return False
                 
                 usuario_logueado = Usuario.objects.get(id=user_id)
                 return usuario_logueado.rol.id == 1
             except Exception:
                 return False
         return False
+
+
+class CustomJWTAuthentication(JWTAuthentication):
+    def get_user(self, validated_token):
+        try:
+            user_id = validated_token['user_id']
+            return Usuario.objects.get(id=user_id)
+        except (KeyError, Usuario.DoesNotExist):
+            from rest_framework.exceptions import AuthenticationFailed
+            raise AuthenticationFailed('User not found', code='user_not_found')
