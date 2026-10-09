@@ -1,8 +1,11 @@
+import logging
 from rest_framework import serializers
 from .models import Rol, Usuario
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
+
+logger = logging.getLogger('seguridad')
 
 class RolSerializer(serializers.ModelSerializer):
     class Meta:
@@ -25,9 +28,9 @@ class CustomTokenObtainPairSerializer(serializers.Serializer):
         try:
             user = Usuario.objects.get(email=email, contrasena=pass_usuario)
         except Usuario.DoesNotExist:
+            logger.warning(f"Intento de acceso denegado (Login fallido). Email usado: {email}")
             raise serializers.ValidationError('Credenciales inválidas')    
-  
-  
+
         refresh = RefreshToken()
         refresh['user_id'] = user.id        
         

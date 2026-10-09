@@ -126,6 +126,7 @@ class ImagenEspecie(APIView):
         imagen.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
 class MisEspeciesListar(APIView):
     authentication_classes = []
     permission_classes = []
