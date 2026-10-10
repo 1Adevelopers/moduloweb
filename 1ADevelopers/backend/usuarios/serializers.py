@@ -34,7 +34,8 @@ class CustomTokenObtainPairSerializer(serializers.Serializer):
             raise serializers.ValidationError('Credenciales incorrectas')    
 
         refresh = RefreshToken()
-        refresh['user_id'] = user.id        
+        refresh['user_id'] = user.id
+        refresh['rol'] = user.rol.id      
         
         return {
             'refresh': str(refresh),
