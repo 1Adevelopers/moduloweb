@@ -4,8 +4,8 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import get_object_or_404
 from .models import Rol, Usuario
-from .serializers import RolSerializer, UsuarioSerializer, CustomTokenObtainPairSerializer
-from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import RolSerializer, UsuarioSerializer, CustomTokenObtainPairSerializer, CustomTokenRefreshSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 class RolListarCrear(APIView):
     permission_classes = [IsAuthenticated]
@@ -109,7 +109,15 @@ class LoginView(APIView):
             
 class CustomTokenObtainPairView(TokenObtainPairView):
     permission_classes = [AllowAny]
-    serializer_class = CustomTokenObtainPairSerializer        
+    serializer_class = CustomTokenObtainPairSerializer
+
+
+class CustomTokenRefreshView(TokenRefreshView):
+    permission_classes = [AllowAny]
+    serializer_class = CustomTokenRefreshSerializer
+
+
+
           
             
             

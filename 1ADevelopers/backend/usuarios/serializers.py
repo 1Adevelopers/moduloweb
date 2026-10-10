@@ -3,7 +3,9 @@ import re
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password, check_password
 from .models import Rol, Usuario
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
+from rest_framework_simplejwt.settings import api_settings
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
@@ -150,3 +152,23 @@ class CustomJWTAuthentication(JWTAuthentication):
         except (KeyError, Usuario.DoesNotExist):
             from rest_framework.exceptions import AuthenticationFailed
             raise AuthenticationFailed('User not found', code='user_not_found')
+
+
+
+
+class CustomTokenRefreshSerializer(TokenRefreshSerializer):
+    """Renueva el token validando contra el modelo Usuario del proyecto
+    (el serializer original busca en la tabla de usuarios de Django y falla)."""
+
+    def validate(self, attrs):
+        refresh = self.token_class(attrs['refresh'])
+        if not Usuario.objects.filter(id=refresh.payload.get('user_id')).exists():
+            raise AuthenticationFailed('El usuario del token no existe', code='user_not_found')
+
+        data = {'access': str(refresh.access_token)}
+        if api_settings.ROTATE_REFRESH_TOKENS:
+            refresh.set_jti()
+            refresh.set_exp()
+            refresh.set_iat()
+            data['refresh'] = str(refresh)
+        return data
