@@ -14,13 +14,16 @@ import os
 from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 
-SECRET_KEY = os.getenv('SECRET_KEY', 'clave-insegura-por-defecto-cambiar-en-produccion')
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    raise ImproperlyConfigured('Falta definir SECRET_KEY')
 
 # DEBUG controlado por entorno (Por defecto en False por seguridad)
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
