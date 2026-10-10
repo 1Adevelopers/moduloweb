@@ -1,5 +1,6 @@
 import logging
 from rest_framework import serializers
+from django.contrib.auth.hashers import make_password, check_password
 from .models import Rol, Usuario
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
@@ -25,11 +26,11 @@ class CustomTokenObtainPairSerializer(serializers.Serializer):
         if not email or not pass_usuario:
             raise serializers.ValidationError('Se requiere email y contraseña')
         
-        try:
-            user = Usuario.objects.get(email=email, contrasena=pass_usuario)
-        except Usuario.DoesNotExist:
+                
+        user = Usuario.objects.filter(email=email).first()
+        if user is None or not check_password(pass_usuario, user.contrasena):
             logger.warning(f"Intento de acceso denegado (Login fallido). Email usado: {email}")
-            raise serializers.ValidationError('Credenciales inválidas')    
+            raise serializers.ValidationError('Credenciales incorrectas')    
 
         refresh = RefreshToken()
         refresh['user_id'] = user.id        
@@ -76,6 +77,8 @@ class UsuarioSerializer(serializers.ModelSerializer):
                 validated_data['rol'] = rol_data
         else:
             validated_data['rol_id'] = 2
+            validated_data['contrasena'] = make_password(validated_data['contrasena'])
+        return Usuario.objects.create(**validated_data)
 
         return Usuario.objects.create(**validated_data)
     
@@ -86,7 +89,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         
         nueva_contrasena = validated_data.get('contrasena')
         if nueva_contrasena:
-            instance.contrasena = nueva_contrasena
+            instance.contrasena = make_password(nueva_contrasena)
 
         if 'rol' in validated_data:
             es_admin = self._verificar_si_es_admin()
