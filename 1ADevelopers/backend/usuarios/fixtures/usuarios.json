@@ -13,7 +13,7 @@
       "nombre": "admin",
       "apellido": "admin",
       "email": "admin@gmail.com",
-      "contrasena": "123456", 
+            "contrasena": "'pbkdf2_sha256$600000$yGNpv29f3UZxSXBzmbfMgJ$ExqTW4SQu5ClLzBO61oYLGnNlHw6V/8jhfrfZJfzGd8='", 
       "rol": 1
     }
   },
@@ -31,7 +31,7 @@
       "nombre": "Docente",
       "apellido": "Docencio",
       "email": "profe@gmail.com",
-      "contrasena": "123456",
+      "contrasena": "'pbkdf2_sha256$600000$sCu10wVai2uzeAkYdhW1wv$ve9dJYhF5Ve3kV6lg9tnJZgyar7fRJl239AcpCaXXOU='",
       "rol": 2
     }
   }

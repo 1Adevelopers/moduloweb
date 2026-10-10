@@ -1,7 +1,11 @@
 import logging
+import re
 from rest_framework import serializers
+from django.contrib.auth.hashers import make_password, check_password
 from .models import Rol, Usuario
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
+from rest_framework_simplejwt.settings import api_settings
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
@@ -25,14 +29,15 @@ class CustomTokenObtainPairSerializer(serializers.Serializer):
         if not email or not pass_usuario:
             raise serializers.ValidationError('Se requiere email y contraseña')
         
-        try:
-            user = Usuario.objects.get(email=email, contrasena=pass_usuario)
-        except Usuario.DoesNotExist:
+                
+        user = Usuario.objects.filter(email=email).first()
+        if user is None or not check_password(pass_usuario, user.contrasena):
             logger.warning(f"Intento de acceso denegado (Login fallido). Email usado: {email}")
-            raise serializers.ValidationError('Credenciales inválidas')    
+            raise serializers.ValidationError('Credenciales incorrectas')    
 
         refresh = RefreshToken()
-        refresh['user_id'] = user.id        
+        refresh['user_id'] = user.id
+        refresh['rol'] = user.rol.id      
         
         return {
             'refresh': str(refresh),
@@ -60,6 +65,24 @@ class UsuarioSerializer(serializers.ModelSerializer):
             'contrasena': {'write_only': True, 'required':False},
             'rol': {'required': False}
         }
+
+        
+    def validate_contrasena(self, value):
+        """Política de contraseñas: mínimo 8 caracteres, con mayúscula, minúscula y número."""
+        if not value:
+            return value
+        errores = []
+        if len(value) < 8:
+            errores.append('Debe tener al menos 8 caracteres.')
+        if not re.search(r'[A-Z]', value):
+            errores.append('Debe incluir al menos una letra mayúscula.')
+        if not re.search(r'[a-z]', value):
+            errores.append('Debe incluir al menos una letra minúscula.')
+        if not re.search(r'\d', value):
+            errores.append('Debe incluir al menos un número.')
+        if errores:
+            raise serializers.ValidationError(errores)
+        return value
     
     def create(self, validated_data):
         if not validated_data.get('contrasena'):
@@ -76,6 +99,8 @@ class UsuarioSerializer(serializers.ModelSerializer):
                 validated_data['rol'] = rol_data
         else:
             validated_data['rol_id'] = 2
+            validated_data['contrasena'] = make_password(validated_data['contrasena'])
+        return Usuario.objects.create(**validated_data)
 
         return Usuario.objects.create(**validated_data)
     
@@ -86,7 +111,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         
         nueva_contrasena = validated_data.get('contrasena')
         if nueva_contrasena:
-            instance.contrasena = nueva_contrasena
+            instance.contrasena = make_password(nueva_contrasena)
 
         if 'rol' in validated_data:
             es_admin = self._verificar_si_es_admin()
@@ -127,3 +152,23 @@ class CustomJWTAuthentication(JWTAuthentication):
         except (KeyError, Usuario.DoesNotExist):
             from rest_framework.exceptions import AuthenticationFailed
             raise AuthenticationFailed('User not found', code='user_not_found')
+
+
+
+
+class CustomTokenRefreshSerializer(TokenRefreshSerializer):
+    """Renueva el token validando contra el modelo Usuario del proyecto
+    (el serializer original busca en la tabla de usuarios de Django y falla)."""
+
+    def validate(self, attrs):
+        refresh = self.token_class(attrs['refresh'])
+        if not Usuario.objects.filter(id=refresh.payload.get('user_id')).exists():
+            raise AuthenticationFailed('El usuario del token no existe', code='user_not_found')
+
+        data = {'access': str(refresh.access_token)}
+        if api_settings.ROTATE_REFRESH_TOKENS:
+            refresh.set_jti()
+            refresh.set_exp()
+            refresh.set_iat()
+            data['refresh'] = str(refresh)
+        return data
