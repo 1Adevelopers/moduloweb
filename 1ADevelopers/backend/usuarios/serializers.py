@@ -1,4 +1,5 @@
 import logging
+import re
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password, check_password
 from .models import Rol, Usuario
@@ -61,6 +62,24 @@ class UsuarioSerializer(serializers.ModelSerializer):
             'contrasena': {'write_only': True, 'required':False},
             'rol': {'required': False}
         }
+
+        
+    def validate_contrasena(self, value):
+        """Política de contraseñas: mínimo 8 caracteres, con mayúscula, minúscula y número."""
+        if not value:
+            return value
+        errores = []
+        if len(value) < 8:
+            errores.append('Debe tener al menos 8 caracteres.')
+        if not re.search(r'[A-Z]', value):
+            errores.append('Debe incluir al menos una letra mayúscula.')
+        if not re.search(r'[a-z]', value):
+            errores.append('Debe incluir al menos una letra minúscula.')
+        if not re.search(r'\d', value):
+            errores.append('Debe incluir al menos un número.')
+        if errores:
+            raise serializers.ValidationError(errores)
+        return value
     
     def create(self, validated_data):
         if not validated_data.get('contrasena'):
