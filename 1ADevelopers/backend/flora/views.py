@@ -2,11 +2,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
 from rest_framework_simplejwt.tokens import AccessToken
 from django.shortcuts import get_object_or_404
 from .models import CategoriaEspecie, Especie, ImagenEspecie, Usuario
 from .serializers import CategoriaSerializer, EspecieSerializer, ImagenEspecieSerializer
 from usuarios.models import Usuario
+
+ID_ROL_ADMIN = 1
 
 def obtener_usuario_desde_token(request):
     auth_header = request.headers.get('Authorization', '')
@@ -47,7 +50,7 @@ class Categorias(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def delete(self, request, pk):
-        categoria = get_object_or_404(Categorias, pk=pk)
+        categoria = get_object_or_404(CategoriaEspecie, pk=pk)
         categoria.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
@@ -76,21 +79,43 @@ class EspecieDetalle(APIView):
                 return [AllowAny()]
             return [IsAuthenticated()]
 
-    def get(self, request, pk):
+    def _obtener_especie_permitida(self, request, pk, require_ownership=False):
         especie = get_object_or_404(Especie, pk=pk)
+        
+        if require_ownership or request.method in ['PUT', 'DELETE']:
+            usuario_logueado = request.user if hasattr(request, 'user') and request.user.is_authenticated else obtener_usuario_desde_token(request)
+
+            if not usuario_logueado:
+                raise PermissionDenied("Debe estar autenticado para acceder a esta ficha.")
+
+            es_admin = getattr(usuario_logueado, 'rol_id', None) == ID_ROL_ADMIN or (
+                hasattr(usuario_logueado, 'rol') and getattr(usuario_logueado.rol, 'id', None) == ID_ROL_ADMIN
+            )
+            es_dueno = especie.usuario_id == usuario_logueado.id
+
+            if not (es_admin or es_dueno):
+                raise PermissionDenied("Acceso denegado: No tiene permisos para consultar o modificar esta ficha de planta.")
+
+        return especie
+
+    def get(self, request, pk):
+        referer = request.META.get('HTTP_REFERER', '')
+        es_consulta_docente = '/docentes/' in referer or '/admin/' in referer or request.query_params.get('es_edicion') == 'true'
+        
+        especie = self._obtener_especie_permitida(request, pk, require_ownership=es_consulta_docente)
         serializer = EspecieSerializer(especie)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def put(self, request, pk):
-        especie = get_object_or_404(Especie, pk=pk)
-        serializer = EspecieSerializer(especie, data=request.data)
+        especie = self._obtener_especie_permitida(request, pk, require_ownership=True)
+        serializer = EspecieSerializer(especie, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def delete(self, request, pk):
-        especie = get_object_or_404(Especie, pk=pk)
+        especie = self._obtener_especie_permitida(request, pk, require_ownership=True)
         especie.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
