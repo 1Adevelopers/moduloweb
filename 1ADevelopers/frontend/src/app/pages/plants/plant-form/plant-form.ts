@@ -8,7 +8,7 @@ import {
   AbstractControl,
   ValidationErrors,
 } from '@angular/forms';
-import { PlantasServicio,} from '../../../services/plantas-servicio';
+import { PlantasServicio } from '../../../services/plantas-servicio';
 import { Categoria } from '../../../interfaces/categoria';
 import { Especie } from '../../../interfaces/especie';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
@@ -60,22 +60,39 @@ export class PlantForm implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEditMode = true;
-      this.PlantasServicio.getPlantaId(+id).subscribe((data) => {
-        this.form.patchValue({
-          nombre_comun: data.nombre_comun,
-          nombre_cientifico: data.nombre_cientifico,
-          descripcion: data.descripcion,
-          categoria: data.categoria,
-        });
-        this.imagenes.clear();
-        data.imagenes.forEach((img: any) => {
-          this.imagenes.push(
-            this.fb.group({
-              id: [img.id],
-              url: [img.url, [Validators.required, imageUrlValidator]],
-            }),
-          );
-        });
+
+      this.PlantasServicio.getPlantaId(+id, true).subscribe({
+        next: (data) => {
+          this.form.patchValue({
+            nombre_comun: data.nombre_comun,
+            nombre_cientifico: data.nombre_cientifico,
+            descripcion: data.descripcion,
+            categoria: data.categoria,
+          });
+          this.imagenes.clear();
+          data.imagenes.forEach((img: any) => {
+            this.imagenes.push(
+              this.fb.group({
+                id: [img.id],
+                url: [img.url, [Validators.required, imageUrlValidator]],
+              }),
+            );
+          });
+        },
+        error: (err: any) => {
+          console.error('Error al cargar la planta:', err);
+
+          this.form.reset();
+
+          if (err.status === 403 || err.status === 401) {
+            alert(
+              'Acceso denegado: No tienes permisos para consultar o editar esta ficha de planta.',
+            );
+          } else {
+            alert('No se pudo encontrar la planta solicitada.');
+          }
+          this.router.navigate(['/docentes']);
+        },
       });
     }
   }

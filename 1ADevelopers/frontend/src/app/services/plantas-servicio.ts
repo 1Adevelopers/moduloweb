@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Categoria } from '../interfaces/categoria';
 import { Especie } from '../interfaces/especie';
@@ -53,9 +53,15 @@ export class PlantasServicio {
     });
   }
 
-  getPlantaId(id: number): Observable<Especie> {
+  getPlantaId(id: number, esEdicion: boolean = true): Observable<Especie> {
+    let params = new HttpParams();
+    if (esEdicion) {
+      params = params.set('es_edicion', 'true');
+    }
+
     return this.http.get<Especie>(`${this.API}/especies/${id}/`, {
       headers: this.getAuthHeaders(),
+      params: params,
     });
   }
 }
