@@ -15,6 +15,7 @@ import { PlantForm } from './pages/plants/plant-form/plant-form';
 import { RegisterComponent } from './pages/auth/register/register';
 import { MensajesLista } from './pages/mensajes-lista/mensajes-lista';
 import { adminGuard } from './guards/admin.guard';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -36,9 +37,9 @@ export const routes: Routes = [
     ],
   },
 
-  { path: 'docentes', component: DocenteDashboard },
-  { path: 'docentes/nueva-planta', component: PlantForm },
-  { path: 'docentes/editar-planta/:id', component: PlantForm },
+  { path: 'docentes', component: DocenteDashboard, canActivate: [authGuard] },
+  { path: 'docentes/nueva-planta', component: PlantForm, canActivate: [authGuard] },
+  { path: 'docentes/editar-planta/:id', component: PlantForm, canActivate: [authGuard] },
 
   { path: 'quienes-somos', component: QuienesSomos },
   { path: 'galeria', component: Galeriafichas },
