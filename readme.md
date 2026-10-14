@@ -110,6 +110,14 @@ Acceder en: [http://127.0.0.1:8000](http://127.0.0.1:8000)
     - En la consola escribir:
         python manage.py loaddata categorias.json
         python manage.py loaddata usuarios.json
+        python manage.py loaddata especies.json
+
+**De esta manera ya contaremos con 2 usuarios creados con 5 fichas cargadas:**
+- email: admin@gmail.com
+- contraseña: 123456
+
+- email: profe@gmail.com
+- contraseña: 123456
 
 ---
 
