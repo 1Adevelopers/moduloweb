@@ -3,22 +3,100 @@
     "model": "flora.especie",
     "pk": 1,
     "fields": {
-      "nombre_comun": "Algarrobo Blanco",
-      "nombre_cientifico": "Neltuma alba",
-      "descripcion": "Árbol nativo de las regiones áridas y semiáridas. Posee una copa amplia y es sumamente resistente a las sequías.",
+      "nombre_comun": "Sauce Criollo",
+      "nombre_cientifico": "Salix humboldtiana",
+      "descripcion": "El sauce criollo es un árbol nativo de Argentina que vive cerca de ríos y lagunas. Puede crecer muy alto, hasta 18 metros, y se reconoce por sus hojas largas y finitas. Es un árbol de follaje caduco, lo que significa que en invierno pierde todas sus hojas y en primavera vuelve a brotar con hojas nuevas. Sus semillas tienen una pelusa blanca que el viento transporta, ayudando a que se disperse y crezca en otros lugares. Es un árbol de crecimiento rápido y muy importante en los paisajes ribereños de nuestro país.",
       "categoria": 1,
       "usuario": 1
+    }
+  },
+  {
+    "model": "flora.imagenespecie",
+    "pk": 1,
+    "fields": {
+      "especie": 1,
+      "url": "https://nacherbeats.github.io/img-app/saucecriollo-04.webp",
+      "fecha_subida": "2026-10-14T03:56:10.506357Z"
     }
   },
   {
     "model": "flora.especie",
     "pk": 2,
     "fields": {
-      "nombre_comun": "Peperina",
-      "nombre_cientifico": "Minthostachys verticillata",
-      "descripcion": "Arbusto aromático característico de las sierras. Muy apreciado para infusiones y medicina tradicional.",
+      "nombre_comun": "Tala",
+      "nombre_cientifico": "Celtis ehrenbergiana o Celtis tala",
+      "descripcion": "El Tala es un arbusto grande o arbolito muy resistente, considerado un verdadero \"guardián\" de nuestras sierras y montes. Es famoso por sus ramas que crecen en forma de zigzag y por sus pequeñas espinas, que actúan como una armadura natural. Es una planta fundamental para la naturaleza cordobesa: donde hay un Tala, hay un refugio seguro para muchísimos animales. ¡Es un símbolo de nuestro paisaje serrano!",
       "categoria": 2,
+      "usuario": 2
+    }
+  },
+  {
+    "model": "flora.imagenespecie",
+    "pk": 2,
+    "fields": {
+      "especie": 2,
+      "url": "https://nacherbeats.github.io/img-app/tala1.webp",
+      "fecha_subida": "2026-10-14T02:55:53.295127Z"
+    }
+  },
+  {
+    "model": "flora.especie",
+    "pk": 3,
+    "fields": {
+      "nombre_comun": "Chañar",
+      "nombre_cientifico": "Geoffroea decorticans",
+      "descripcion": "El Chañar es un árbol o arbusto típico de las zonas áridas de Argentina, conocido popularmente como el “caramelo del monte” por la dulzura de sus frutos. Su corteza es única: la capa externa se desprende naturalmente dejando ver un tronco de color verde intenso.",
+      "categoria": 1,
       "usuario": 1
+    }
+  },
+  {
+    "model": "flora.imagenespecie",
+    "pk": 3,
+    "fields": {
+      "especie": 3,
+      "url": "https://nacherbeats.github.io/img-app/cha-ar-09.webp",
+      "fecha_subida": "2026-10-14T00:00:00.000000Z"
+    }
+  },
+  {
+    "model": "flora.especie",
+    "pk": 4,
+    "fields": {
+      "nombre_comun": "Quebracho blanco",
+      "nombre_cientifico": "Aspidosperma quebracho-blanco",
+      "descripcion": "El quebracho blanco es un árbol nativo de Argentina y países vecinos. Puede crecer muy alto, hasta 25 metros. Se reconoce por su tronco recto y su corteza rugosa de color amarillo grisáceo.",
+      "categoria": 1,
+      "usuario": 2
+    }
+  },
+  {
+    "model": "flora.imagenespecie",
+    "pk": 4,
+    "fields": {
+      "especie": 4,
+      "url": "https://nacherbeats.github.io/img-app/quebrachoblanco-07.webp",
+      "fecha_subida": "2026-10-14T00:00:00.000000Z"
+    }
+  },
+  {
+    "model": "flora.especie",
+    "pk": 5,
+    "fields": {
+      "nombre_comun": "Mburucuyá o Pasionaria",
+      "nombre_cientifico": "Passiflora caerulea",
+      "descripcion": "La pasionaria azul es una trepadora espectacular que actúa como una liana. Sus flores son increíblemente bellas y complejas, parecidas a una corona.",
+      "categoria": 4,
+      "usuario": 2
+    }
+  },
+  {
+    "model": "flora.imagenespecie",
+    "pk": 5,
+    "fields": {
+      "especie": 5,
+      "url": "https://nacherbeats.github.io/img-app/Pasionaria-Azul3.webp",
+      "fecha_subida": "2026-10-14T00:00:00.000000Z"
     }
   }
 ]

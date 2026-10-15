@@ -110,6 +110,14 @@ Acceder en: [http://127.0.0.1:8000](http://127.0.0.1:8000)
     - En la consola escribir:
         python manage.py loaddata categorias.json
         python manage.py loaddata usuarios.json
+        python manage.py loaddata especies.json
+
+**De esta manera ya contaremos con 2 usuarios creados con 5 fichas cargadas:**
+- email: admin@gmail.com
+- contraseña: 123456
+
+- email: profe@gmail.com
+- contraseña: 123456
 
 ---
 
@@ -139,7 +147,7 @@ Por el momento el sistema está configurado de esta manera, pero en próximos sp
 - [http://127.0.0.1:8000/api/usuarios/usuarios/<int:pk>/](http://127.0.0.1:8000/api/usuarios/usuarios/<int:pk>) - <small>Detalle y ABM de un usuario específico</small>
 - [http://127.0.0.1:8000/api/usuarios/roles/](http://127.0.0.1:8000/api/usuarios/roles/) - <small>Listar roles del sistema.</small>
 - [http://127.0.0.1:8000/api/usuarios/login/](http://127.0.0.1:8000/api/usuarios/login/) - <small>Endpoint seguro de autenticación por método POST.</small>
-
+ -o
 -Módulo Flora (api/flora/)
 
 - [http://127.0.0.1:8000/api/flora/especies/](http://127.0.0.1:8000/api/flora/especies/) - <small>Catálogo público de especies cargadas en el sistema<small>

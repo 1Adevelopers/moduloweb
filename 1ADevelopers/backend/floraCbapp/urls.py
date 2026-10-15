@@ -16,10 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from usuarios.views import CustomTokenRefreshView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/usuarios/', include('usuarios.urls')),
+    path('api/', include('usuarios.urls')),
     path('api/flora/', include('flora.urls')),
     path('api/interacciones/', include('interacciones.urls')),
+    path('api/token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
 ]

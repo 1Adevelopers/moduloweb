@@ -14,7 +14,8 @@ import { DocenteDashboard } from './pages/docentes/docente-dashboard/docente-das
 import { PlantForm } from './pages/plants/plant-form/plant-form';
 import { RegisterComponent } from './pages/auth/register/register';
 import { MensajesLista } from './pages/mensajes-lista/mensajes-lista';
-import { using } from 'rxjs';
+import { adminGuard } from './guards/admin.guard';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -24,20 +25,21 @@ export const routes: Routes = [
   {
     path: 'admin',
     component: Dashboard,
+    canActivate: [adminGuard],
     children: [
       { path: 'plantas', component: PlantList },
       { path: 'nueva-planta', component: PlantForm },
       { path: 'editar-planta/:id', component: PlantForm },
       { path: 'usuarios', component: UserList },
       { path: 'usuarios/nuevo', component: UserForm },
-      {path: 'usuarios/editar/:id', component: UserForm},
+      { path: 'usuarios/editar/:id', component: UserForm },
       { path: 'mensajes', component: MensajesLista },
     ],
   },
 
-  { path: 'docentes', component: DocenteDashboard },
-  { path: 'docentes/nueva-planta', component: PlantForm },
-  { path: 'docentes/editar-planta/:id', component: PlantForm },
+  { path: 'docentes', component: DocenteDashboard, canActivate: [authGuard] },
+  { path: 'docentes/nueva-planta', component: PlantForm, canActivate: [authGuard] },
+  { path: 'docentes/editar-planta/:id', component: PlantForm, canActivate: [authGuard] },
 
   { path: 'quienes-somos', component: QuienesSomos },
   { path: 'galeria', component: Galeriafichas },
