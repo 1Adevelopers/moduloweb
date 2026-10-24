@@ -2,6 +2,8 @@ import logging
 import re
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password, check_password
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 from .models import Rol, Usuario
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 from rest_framework_simplejwt.settings import api_settings
@@ -11,10 +13,12 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 logger = logging.getLogger('seguridad')
 
+
 class RolSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rol
         fields = ['id', 'nombre_rol']
+
 
 class CustomTokenObtainPairSerializer(serializers.Serializer):
     email = serializers.EmailField(required=False, write_only=True)
@@ -22,22 +26,20 @@ class CustomTokenObtainPairSerializer(serializers.Serializer):
     contrasena = serializers.CharField(required=False, write_only=True)
     
     def validate(self, attrs):
-        
         email = attrs.get('email')
         pass_usuario = attrs.get('contrasena') or attrs.get('password')
         
         if not email or not pass_usuario:
             raise serializers.ValidationError('Se requiere email y contraseña')
-        
-                
+            
         user = Usuario.objects.filter(email=email).first()
         if user is None or not check_password(pass_usuario, user.contrasena):
             logger.warning(f"Intento de acceso denegado (Login fallido). Email usado: {email}")
-            raise serializers.ValidationError('Credenciales incorrectas')    
-
+            raise serializers.ValidationError('Credenciales incorrectas')
+        
         refresh = RefreshToken()
         refresh['user_id'] = user.id
-        refresh['rol'] = user.rol.id      
+        refresh['rol'] = user.rol.id
         
         return {
             'refresh': str(refresh),
@@ -49,28 +51,34 @@ class CustomTokenObtainPairSerializer(serializers.Serializer):
                 'email': user.email,
                 'rol': user.rol.id
             }
-            }
+        }
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
-
     rol_nombre = serializers.ReadOnlyField(source='rol.nombre_rol')
-
+    
     class Meta:
         model = Usuario
         fields = ['id', 'nombre', 'apellido', 'email', 'rol', 'rol_nombre', 'contrasena']
-        # agrege contrasena en fields| Se proteje para que la contraseña no se envíe al frontend
         read_only_fields = ['id', 'rol_nombre']
         extra_kwargs = {
-            'contrasena': {'write_only': True, 'required':False},
+            'contrasena': {'write_only': True, 'required': False},
             'rol': {'required': False}
         }
-
-        
+    
+    def validate_email(self, value):
+        """Validación de formato de correo electrónico."""
+        try:
+            validate_email(value)
+        except ValidationError:
+            raise serializers.ValidationError("Formato de correo inválido.")
+        return value
+    
     def validate_contrasena(self, value):
-        """Política de contraseñas: mínimo 8 caracteres, con mayúscula, minúscula y número."""
+        """Política de contraseñas: mínimo 8 caracteres, con mayúscula, minúscula, número y símbolo."""
         if not value:
             return value
+        
         errores = []
         if len(value) < 8:
             errores.append('Debe tener al menos 8 caracteres.')
@@ -80,6 +88,9 @@ class UsuarioSerializer(serializers.ModelSerializer):
             errores.append('Debe incluir al menos una letra minúscula.')
         if not re.search(r'\d', value):
             errores.append('Debe incluir al menos un número.')
+        if not re.search(r'[!@#$%^&*()_+\-=\[\]{};:"\\|,.<>\/?]', value):
+            errores.append('Debe incluir al menos un símbolo (!, @, #, $, etc.).')
+        
         if errores:
             raise serializers.ValidationError(errores)
         return value
@@ -89,9 +100,8 @@ class UsuarioSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'contrasena': 'La contraseña es obligatoria para registrar un nuevo usuario'})
         
         rol_data = validated_data.pop('rol', None)
-        
         es_admin = self._verificar_si_es_admin()
-
+        
         if es_admin and rol_data:
             if isinstance(rol_data, dict):
                 validated_data['rol_id'] = rol_data.get('id', 2)
@@ -99,9 +109,8 @@ class UsuarioSerializer(serializers.ModelSerializer):
                 validated_data['rol'] = rol_data
         else:
             validated_data['rol_id'] = 2
-            validated_data['contrasena'] = make_password(validated_data['contrasena'])
-        return Usuario.objects.create(**validated_data)
-
+        
+        validated_data['contrasena'] = make_password(validated_data['contrasena'])
         return Usuario.objects.create(**validated_data)
     
     def update(self, instance, validated_data):
@@ -112,22 +121,22 @@ class UsuarioSerializer(serializers.ModelSerializer):
         nueva_contrasena = validated_data.get('contrasena')
         if nueva_contrasena:
             instance.contrasena = make_password(nueva_contrasena)
-
+        
         if 'rol' in validated_data:
             es_admin = self._verificar_si_es_admin()
             if es_admin:
                 instance.rol = validated_data.get('rol')
             else:
                 validated_data.pop('rol', None)
-
+        
         instance.save()
         return instance
-
+    
     def _verificar_si_es_admin(self):
         request = self.context.get('request')
         if not request:
             return False
-
+        
         auth_header = request.headers.get('Authorization', '')
         if auth_header.startswith('Bearer '):
             raw_token = auth_header.split(' ')[1]
@@ -136,7 +145,6 @@ class UsuarioSerializer(serializers.ModelSerializer):
                 user_id = access_token.get('user_id')
                 if not user_id:
                     return False
-                
                 usuario_logueado = Usuario.objects.get(id=user_id)
                 return usuario_logueado.rol.id == 1
             except Exception:
@@ -154,21 +162,18 @@ class CustomJWTAuthentication(JWTAuthentication):
             raise AuthenticationFailed('User not found', code='user_not_found')
 
 
-
-
 class CustomTokenRefreshSerializer(TokenRefreshSerializer):
-    """Renueva el token validando contra el modelo Usuario del proyecto
-    (el serializer original busca en la tabla de usuarios de Django y falla)."""
-
+    """Renueva el token validando contra el modelo Usuario del proyecto."""
     def validate(self, attrs):
         refresh = self.token_class(attrs['refresh'])
         if not Usuario.objects.filter(id=refresh.payload.get('user_id')).exists():
             raise AuthenticationFailed('El usuario del token no existe', code='user_not_found')
-
+        
         data = {'access': str(refresh.access_token)}
         if api_settings.ROTATE_REFRESH_TOKENS:
             refresh.set_jti()
             refresh.set_exp()
             refresh.set_iat()
             data['refresh'] = str(refresh)
+        
         return data
